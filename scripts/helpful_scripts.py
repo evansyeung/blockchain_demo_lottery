@@ -1,4 +1,4 @@
-from brownie import accounts, network, config, MockV3Aggregator, Contract
+from brownie import accounts, network, config, MockV3Aggregator, VRFCoordinatorMock, LinkToken, Contract, interface
 
 LOCAL_BLOCKCHAIN_ENVIRONMENTS = [
   "development",
@@ -21,6 +21,8 @@ def get_account(index=0, id=None):
 
 contract_to_mock = {
   "eth_usd_price_feed": MockV3Aggregator,
+  "vrf_coordinator": VRFCoordinatorMock,
+  "link_token": LinkToken,
 }
 
 def get_contract(contract_name):
@@ -57,5 +59,20 @@ INITIAL_VALUE = 200000000000
 
 def deploy_mocks(decimals=DECIMALS, initial_value=INITIAL_VALUE):
   account = get_account()
-  mock_price_feed = MockV3Aggregator.deploy(decimals, initial_value, {"from": account})
-  print("Deployed!")
+  MockV3Aggregator.deploy(decimals, initial_value, {"from": account})
+  link_token = LinkToken.deploy({"from": account})
+  VRFCoordinatorMock.deploy(link_token.address, {"from": account})
+  print("Mocks deployed!")
+
+def fund_with_link(contract_address, account=None, link_token=None, amount=100000000000000000): # amount = 0.1 LINK
+  account = account if account else get_account()
+  link_token = link_token if link_token else get_contract("link_token")
+
+  # Interface is another way to create contracts to interact with
+  # With this we don't need to compile down to the ABI, Brownie is smart enough to know that it can compile down to the ABI with the Interface
+  # link_token_contract = interface.LinkTokenInterface(link_token.address)
+  # tx = link_token_contract.transfer(contract_address, amount, {"from": account})
+
+  tx = link_token.transfer(contract_address, amount, {"from": account})
+  tx.wait(1)
+  print("Fund contract!")

@@ -25,6 +25,7 @@ contract Lottery is VRFConsumerBase, Ownable {
   LOTTERY_STATE public lottery_state;
   uint256 public fee;
   bytes32 public keyHash;
+  event RequestedRandomness(bytes32 requestId);
 
   // After public, we can add any additional contrustors from inherited contracts
   constructor(address _priceFeedAddress, address _vrfCoordinator, address _link, uint256 _fee, bytes32 _keyHash) public VRFConsumerBase(_vrfCoordinator, _link) {
@@ -62,19 +63,20 @@ contract Lottery is VRFConsumerBase, Ownable {
   function endLottery() public onlyOwner {
     lottery_state = LOTTERY_STATE.CALCULATING_WINNER;
     bytes32 requestId = requestRandomness(keyHash, fee);
+    emit RequestedRandomness(requestId);
   }
 
   // Internal -> only allow our VRFCoordinator to call this function
   // override -> Override VRFConsumerBase's fulfillRandomness function (which is meant to be overritten by us)
   function fulfillRandomness(bytes32 _requestId, uint256 _randomness) internal override {
     require(lottery_state == LOTTERY_STATE.CALCULATING_WINNER, "You aren't there yet!");
-    require(_randomness > 0, "random-not-found!");
+    require(_randomness > 0, "random-not-found");
     uint256 indexOfWinner = _randomness % players.length;
     recentWinner = players[indexOfWinner];
     recentWinner.transfer(address(this).balance);
     // Reset lottery
     players = new address payable[](0);
-    lottery_state = LOTTERY_STATE.OPEN;
+    lottery_state = LOTTERY_STATE.CLOSED;
     randomness = _randomness;
   }
 }
