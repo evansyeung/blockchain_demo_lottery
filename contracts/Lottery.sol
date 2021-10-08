@@ -10,7 +10,7 @@ import "@chainlink/contracts/src/v0.6/VRFConsumerBase.sol";
 // Also inherits VRFConsumerBase
 contract Lottery is VRFConsumerBase, Ownable {
   address payable[] public players;
-  address payable recentWinner;
+  address payable public recentWinner;
   uint256 public randomness;
   uint256 public usdEntryFee;
   AggregatorV3Interface internal ethUsdPriceFeed;
@@ -63,6 +63,8 @@ contract Lottery is VRFConsumerBase, Ownable {
   function endLottery() public onlyOwner {
     lottery_state = LOTTERY_STATE.CALCULATING_WINNER;
     bytes32 requestId = requestRandomness(keyHash, fee);
+
+    // Used in our unit tests to emit our requestId
     emit RequestedRandomness(requestId);
   }
 

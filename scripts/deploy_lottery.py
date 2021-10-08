@@ -15,6 +15,7 @@ def deploy_lottery():
     publish_source=config["networks"][network.show_active()].get("verify", False),
   )
   print("Deployed lottery!")
+  return lottery
 
 def start_lottery():
   account = get_account()
@@ -44,7 +45,7 @@ def end_lottery():
 
   # Wait for chainlink node to finish with requestRandomness()
   time.sleep(60)
-  print("{} is the new winner!".format(lottery.recentWinner()))
+  print(f"{lottery.recentWinner()} is the new winner!")
 
 def main():
   deploy_lottery()

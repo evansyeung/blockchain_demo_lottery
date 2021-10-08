@@ -76,3 +76,4 @@ def fund_with_link(contract_address, account=None, link_token=None, amount=10000
   tx = link_token.transfer(contract_address, amount, {"from": account})
   tx.wait(1)
   print("Fund contract!")
+  return tx
